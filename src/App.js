@@ -13,10 +13,15 @@ const App = () => {
     const [moviesPerPage, setMoviesPerPage] = useState(10);
     const [totalMovies, setTotalMovies] = useState(0);
     const [searchText, setSearchText] = useState(0);
+    const [searchSlots, setSearchSlots] = useState({
+        searchByName: 1,
+        searchByDescription: 0,
+    });
 
     useEffect(() => {
+        console.log('searchSlots.searchByDescription', searchSlots.searchByDescription);
         const fetchMovies = async () => {
-            genericSearch('http://localhost:5000/api/movies?page=1&limit=10&orderBy=-1');
+            genericSearch(`http://localhost:5000/api/movies?page=1&limit=10&orderBy=-1&filterByDescription=${searchSlots.searchByDescription}`);
         };
         fetchMovies();
     }, []);
@@ -38,12 +43,12 @@ const App = () => {
     const handleFilterSearch = (e) => {
         console.log('I am here');
         e.preventDefault();
-        genericSearch(`http://localhost:5000/api/movies?orderBy=-1&filter=${searchText}`);
+        genericSearch(`http://localhost:5000/api/movies?orderBy=-1&filter=${searchText}&filterByDescription=${searchSlots.searchByDescription}`);
     }
 
     const handleChangePage = async (e, pageNumber) => {
         e.preventDefault();
-        genericSearch(`http://localhost:5000/api/movies?page=${pageNumber}&limit=10&orderBy=-1`);
+        genericSearch(`http://localhost:5000/api/movies?page=${pageNumber}&limit=10&orderBy=-1&filterByDescription=${searchSlots.searchByDescription}`);
     }
 
     const renderMovies = () => {
@@ -56,13 +61,19 @@ const App = () => {
             )
         })
     }
+
+    const handleFilterBy = (filterBy) => {
+        let searchSlotsState = searchSlots;
+        searchSlotsState[filterBy] = searchSlotsState[filterBy] === 0 ? true : false ;
+        setSearchSlots({...searchSlotsState});
+    }
   return (
     <div className="App">
         <header>
             <h1>Movies List</h1>
         </header>
         <main>
-            <Search handleSetSearchText={handleSetSearchText} handleFilterSearch={handleFilterSearch}/>
+            <Search handleSetSearchText={handleSetSearchText} handleFilterSearch={handleFilterSearch} searchSlots={searchSlots} handleFilterBy={handleFilterBy}/>
             {renderMovies()}
             <Pagination moviesPerPage={moviesPerPage} totalMovies={totalMovies} handleChangePage={handleChangePage} />
         </main>

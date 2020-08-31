@@ -12,43 +12,52 @@ const App = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [moviesPerPage, setMoviesPerPage] = useState(10);
     const [totalMovies, setTotalMovies] = useState(0);
-    const [searchText, setSearchText] = useState(0);
+    const [searchText, setSearchText] = useState("");
     const [searchSlots, setSearchSlots] = useState({
         searchByName: 1,
         searchByDescription: 0,
     });
+    const [orderSlots, setOrderSlots] = useState({
+        orderByDuration: 0,
+        orderByImdbRating: 1,
+        orderByPgRating: 0,
+    });
 
     useEffect(() => {
-        console.log('searchSlots.searchByDescription', searchSlots.searchByDescription);
         const fetchMovies = async () => {
-            genericSearch(`http://localhost:5000/api/movies?page=1&limit=10&orderBy=-1&filterByDescription=${searchSlots.searchByDescription}`);
+            setCurrentPage(1);
+            genericSearch();
         };
         fetchMovies();
     }, []);
 
-    const genericSearch = async (url) => {
-        const movies = await axios.get(url);
+    useEffect(() => {
+            genericSearch();
+      }, [currentPage]);
+
+    const genericSearch = async () => {
+        const sortBy = orderSlots.orderByDuration === 1 ? 'duration' : (orderSlots.orderByImdbRating === 1 ? 'imdbRating' : 'pgRating' );
+        const fetchUrl = `http://localhost:5000/api/movies?page=${currentPage}&&filter=${searchText}&limit=10&orderBy=-1&filterByDescription=${searchSlots.searchByDescription}&sortBy=${sortBy}`
+        const movies = await axios.get(fetchUrl);
         setMovies(movies.data.allMovies);
-        setCurrentPage(movies.data.currentPage);
         setMoviesPerPage(movies.data.moviesPerPage);
         setTotalMovies(movies.data.totalMovies);
         setLoading(false);
     }
 
     const handleSetSearchText = (searchText) => {
-        console.log('searchText', searchText);
         setSearchText(searchText);
     }
 
     const handleFilterSearch = (e) => {
-        console.log('I am here');
         e.preventDefault();
-        genericSearch(`http://localhost:5000/api/movies?orderBy=-1&filter=${searchText}&filterByDescription=${searchSlots.searchByDescription}`);
+        setCurrentPage(1);
+        genericSearch();
     }
 
     const handleChangePage = async (e, pageNumber) => {
         e.preventDefault();
-        genericSearch(`http://localhost:5000/api/movies?page=${pageNumber}&limit=10&orderBy=-1&filterByDescription=${searchSlots.searchByDescription}`);
+        setCurrentPage(pageNumber);
     }
 
     const renderMovies = () => {
@@ -64,18 +73,40 @@ const App = () => {
 
     const handleFilterBy = (filterBy) => {
         let searchSlotsState = searchSlots;
-        searchSlotsState[filterBy] = searchSlotsState[filterBy] === 0 ? true : false ;
+        searchSlotsState[filterBy] = searchSlotsState[filterBy] === 0 ? 1 : 0 ;
         setSearchSlots({...searchSlotsState});
     }
+
+    const handleOrderBy = (orderBy) => {
+        const resetObject = {
+            orderByDuration: 0,
+            orderByImdbRating: 0,
+            orderByPgRating: 0,
+        };
+        resetObject[orderBy] = 1;
+        setOrderSlots({...resetObject});
+    }
+
   return (
     <div className="App">
         <header>
-            <h1>Movies List</h1>
+            <h1 style={{color: "black"}}>Movies List</h1>
         </header>
         <main>
-            <Search handleSetSearchText={handleSetSearchText} handleFilterSearch={handleFilterSearch} searchSlots={searchSlots} handleFilterBy={handleFilterBy}/>
+            <Search 
+                handleSetSearchText={handleSetSearchText} 
+                handleFilterSearch={handleFilterSearch} 
+                searchSlots={searchSlots}
+                orderSlots={orderSlots}
+                handleFilterBy={handleFilterBy} 
+                handleOrderBy={handleOrderBy} 
+            />
             {renderMovies()}
-            <Pagination moviesPerPage={moviesPerPage} totalMovies={totalMovies} handleChangePage={handleChangePage} />
+            <Pagination 
+                moviesPerPage={moviesPerPage} 
+                totalMovies={totalMovies} 
+                handleChangePage={handleChangePage} 
+            />
         </main>
     </div>
   );

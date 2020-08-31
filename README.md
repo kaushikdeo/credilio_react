@@ -3,7 +3,7 @@ Please check out the backend repo before this front end.
 ## Steps to run
 
 ### `git clone https://github.com/kaushikdeo/credilio.git`
-### `cd credilio/`
+### `cd credilio_react/`
 ### `npm i`
 ### `npm start`
 

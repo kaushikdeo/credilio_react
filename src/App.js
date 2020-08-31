@@ -12,29 +12,38 @@ const App = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [moviesPerPage, setMoviesPerPage] = useState(10);
     const [totalMovies, setTotalMovies] = useState(0);
+    const [searchText, setSearchText] = useState(0);
 
     useEffect(() => {
         const fetchMovies = async () => {
-            setLoading(true);
-            const movies = await axios.get('http://localhost:5000/api/movies?page=1&limit=10&orderBy=1');
-            setMovies(movies.data.allMovies);
-            setCurrentPage(movies.data.currentPage);
-            setMoviesPerPage(movies.data.moviesPerPage);
-            setTotalMovies(movies.data.totalMovies);
-            setLoading(false);
+            genericSearch('http://localhost:5000/api/movies?page=1&limit=10&orderBy=-1');
         };
         fetchMovies();
     }, []);
 
-    const handleChangePage = async (e, pageNumber) => {
-        e.preventDefault();
-        console.log('pageNumber', pageNumber);
-        const movies = await axios.get(`http://localhost:5000/api/movies?page=${pageNumber}&limit=10&orderBy=1`);
+    const genericSearch = async (url) => {
+        const movies = await axios.get(url);
         setMovies(movies.data.allMovies);
         setCurrentPage(movies.data.currentPage);
         setMoviesPerPage(movies.data.moviesPerPage);
         setTotalMovies(movies.data.totalMovies);
         setLoading(false);
+    }
+
+    const handleSetSearchText = (searchText) => {
+        console.log('searchText', searchText);
+        setSearchText(searchText);
+    }
+
+    const handleFilterSearch = (e) => {
+        console.log('I am here');
+        e.preventDefault();
+        genericSearch(`http://localhost:5000/api/movies?orderBy=-1&filter=${searchText}`);
+    }
+
+    const handleChangePage = async (e, pageNumber) => {
+        e.preventDefault();
+        genericSearch(`http://localhost:5000/api/movies?page=${pageNumber}&limit=10&orderBy=-1`);
     }
 
     const renderMovies = () => {
@@ -53,7 +62,7 @@ const App = () => {
             <h1>Movies List</h1>
         </header>
         <main>
-            <Search />
+            <Search handleSetSearchText={handleSetSearchText} handleFilterSearch={handleFilterSearch}/>
             {renderMovies()}
             <Pagination moviesPerPage={moviesPerPage} totalMovies={totalMovies} handleChangePage={handleChangePage} />
         </main>

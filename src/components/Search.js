@@ -1,9 +1,10 @@
 import React from 'react'
 
-const Search = () => {
+const Search = ({handleSetSearchText, handleFilterSearch}) => {
     return (
         <div>
-            Search
+            <input onChange={(e) => handleSetSearchText(e.target.value)}/>
+            <button onClick={handleFilterSearch}>Search</button>
         </div>
     )
 }
